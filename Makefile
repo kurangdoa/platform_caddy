@@ -1,56 +1,19 @@
-# Variables
-COMPOSE_FILE=docker-compose.yml
-COMPOSE_FILE_START=docker-compose-start.yml
-CERTBOT_EMAIL=rando.bayor@gmail.com
+COMPOSE_FILE = docker-compose.yml
+CONTAINER_NAME = global-caddy
 
-.PHONY: up down restart status logs shell clean heartbeat
+.PHONY: init up down restart reload status logs shell clean
 
-# Starts the local environment and forces a build so your latest code is used
-up_start:	
-	docker compose -f $(COMPOSE_FILE_START) up --build -d
+# Initialize external docker networks if they do not exist
+init:
+	@docker network inspect movie-network >/dev/null 2>&1 || docker network create movie-network
+	@docker network inspect langfuse-network >/dev/null 2>&1 || docker network create langfuse-network
+	@docker network inspect mlflow-network >/dev/null 2>&1 || docker network create mlflow-network
+	@echo "All external networks are ready."
 
-up:	
-	docker compose -f $(COMPOSE_FILE) up --build -d
+# Start Caddy gateway
+up: init
+	docker compose -f $(COMPOSE_FILE) up -d
 
-# Shuts down the local environment
+# Stop Caddy gateway
 down:
 	docker compose -f $(COMPOSE_FILE) down
-
-down_start:	
-	docker compose -f $(COMPOSE_FILE_START) down
-
-cert_init_frontend:
-	docker run -it --rm --name certbot \
-	  -v "$$(pwd)/certbot/conf:/etc/letsencrypt" \
-	  -v "$$(pwd)/certbot/www:/var/www/certbot" \
-	  certbot/certbot certonly \
-	  --webroot -w /var/www/certbot \
-	  -d movie-trip.kurangdoa.com \
-	  --email $(CERTBOT_EMAIL) \
-	  --agree-tos \
-	  --no-eff-email
-
-cert_init_langfuse:
-	docker run -it --rm --name certbot \
-	  -v "$$(pwd)/certbot/conf:/etc/letsencrypt" \
-	  -v "$$(pwd)/certbot/www:/var/www/certbot" \
-	  certbot/certbot certonly \
-	  --webroot -w /var/www/certbot \
-	  -d langfuse.kurangdoa.com \
-	  --email $(CERTBOT_EMAIL) \
-	  --agree-tos \
-	  --no-eff-email
-
-cert_init_mlflow:
-	docker run -it --rm --name certbot \
-	  -v "$$(pwd)/certbot/conf:/etc/letsencrypt" \
-	  -v "$$(pwd)/certbot/www:/var/www/certbot" \
-	  certbot/certbot certonly \
-	  --webroot -w /var/www/certbot \
-	  -d mlflow.kurangdoa.com \
-	  --email $(CERTBOT_EMAIL) \
-	  --agree-tos \
-	  --no-eff-email
-
-# Runs all three certbot commands sequentially
-cert_init_all: cert_init_frontend cert_init_langfuse cert_init_mlflow
