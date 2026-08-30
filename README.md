@@ -19,6 +19,13 @@ Start the containers. Nginx will boot up happily on port 80.
 
 This is made simple with the `make up_start`
 
+You might want to install make: 
+
+```
+sudo apt update
+sudo apt install make
+```
+
 ### Step 2: Generate the Certificates
 With Nginx running on port 80, run your Certbot command. Certbot will safely talk to Let's Encrypt, verify your domain, and download the `.pem` certificate files onto your server.
 

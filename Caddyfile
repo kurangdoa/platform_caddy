@@ -1,0 +1,32 @@
+{
+    email rando.bayor@gmail.com
+}
+
+# ---------------------------------------------------------
+# APP 1: MOVIE TRIP (Frontend + Backend API)
+# ---------------------------------------------------------
+movie-trip.kurangdoa.com {
+    # Route API traffic to FastAPI backend
+    handle /api/* {
+        reverse_proxy backend:8000
+    }
+
+    # Route everything else to the frontend container
+    handle {
+        reverse_proxy frontend:3000
+    }
+}
+
+# ---------------------------------------------------------
+# APP 2: LANGFUSE OBSERVABILITY
+# ---------------------------------------------------------
+langfuse.kurangdoa.com {
+    reverse_proxy langfuse-web:3000
+}
+
+# ---------------------------------------------------------
+# APP 3: MLFLOW TRACKING SERVER
+# ---------------------------------------------------------
+mlflow.kurangdoa.com {
+    reverse_proxy mlflow-server:5000
+}

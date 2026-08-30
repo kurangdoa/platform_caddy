@@ -1,33 +1,25 @@
-# docker-compose.yml
-
 services:
-  nginx:
-    container_name: global-nginx
-    image: nginx:latest
-    ports:
-      - "80:80"       # HTTP
-      - "443:443"     # HTTPS
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./certbot/conf:/etc/letsencrypt   # SSL Certificates
-      - ./certbot/www:/var/www/certbot    # SSL Validation
+  caddy:
+    image: caddy:2-alpine
+    container_name: global-caddy
     restart: always
-    networks:
-      - movie-network # Connects to the shared bridge
-      - mlflow-network
-      - langfuse-network
-
-  certbot:
-    image: certbot/certbot
-    container_name: certbot-renewer
-    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # Optional: enables HTTP/3 QUIC
     volumes:
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-    # This command wakes up every 12 hours, tries to renew, and goes back to sleep
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - movie-network
+      - langfuse-network
+      - mlflow-network
 
-# Tells Nginx the bridge already exists (created by your other apps)
+volumes:
+  caddy_data:
+  caddy_config:
+
 networks:
   movie-network:
     external: true
