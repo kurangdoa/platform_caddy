@@ -1,58 +1,23 @@
-# platform_nginx
-nginx deployment for kurangdoa platform
+Markdown
+# platform_gateway
+Reverse proxy and automatic SSL gateway for the Kurangdoa platform using [Caddy](https://caddyserver.com/docs/quick-starts/caddyfile)
 
-## 🔒 SSL & The "Chicken and Egg" Nginx Problem
+## 🚀 Overview
 
-When setting up this project on a new server for the first time, you will run into a classic "Chicken and Egg" problem with Nginx and Let's Encrypt (Certbot).
+This repository manages the global reverse proxy gateway routing public traffic to platform services:
+* **Movie Trip Planner (`movie-trip.kurangdoa.com`)**: Next.js frontend and FastAPI backend
+* **Langfuse (`langfuse.kurangdoa.com`)**: LLM observability and tracing platform
+* **MLflow (`mlflow.kurangdoa.com`)**: Experiment tracking server
 
-**The Problem:**
-* **Nginx** will crash and refuse to start if it is told to listen on port 443 (HTTPS) but the SSL certificates don't exist on the server yet.
-* **Certbot** cannot generate those SSL certificates for you unless Nginx is successfully running on port 80 (HTTP) to prove you own the domain. 
+---
 
-**The Solution: The 3-Step Dance**
-To successfully deploy this, you must run the setup in three stages:
+## 🔒 Automated SSL & Zero-Config HTTPS
 
-### Step 1: Start with HTTP Only
-Before running `docker compose up -d` for the Proxy Gateway, open the `nginx.conf` file and make sure the HTTPS (`listen 443 ssl;`) server blocks are completely commented out (hidden behind `#` symbols). 
+Unlike traditional Nginx + Certbot setups, Caddy handles TLS automatically:
+* **Automatic Certificates**: Caddy requests, verifies, and installs Let's Encrypt certificates on first startup.
+* **Auto-Renewal**: Background renewal without cron jobs or external certbot containers.
+* **No Startup Crashes**: Caddy boots cleanly even if upstream application containers are temporarily offline.
 
-Start the containers. Nginx will boot up happily on port 80.
+Previously, Nginx was considered but it was too quirky for the purpose.
 
-This is made simple with the `make up_start`
-
-You might want to install make: 
-
-```
-sudo apt update
-sudo apt install make
-```
-
-### Step 2: Generate the Certificates
-With Nginx running on port 80, run your Certbot command. Certbot will safely talk to Let's Encrypt, verify your domain, and download the `.pem` certificate files onto your server.
-
-#### the certbot command looks like this
-```
-docker run -it --rm --name certbot \
-  -v "$(pwd)/certbot/conf:/etc/letsencrypt" \
-  -v "$(pwd)/certbot/www:/var/www/certbot" \
-  certbot/certbot certonly \
-  --webroot -w /var/www/certbot \
-  -d movie-trip.kurangdoa.com \
-  --email rando.bayor@gmail.com \
-  --agree-tos \
-  --no-eff-email
-```
-
-or made simple with `make cert-init-all`
-
-#### restart nginx
-
-Restart Nginx to apply the changes:
-```bash
-docker compose restart nginx
-```
-
-### Step 3: Activate HTTPS
-Now that the certificate files actually exist on your hard drive, open `nginx.conf` again and **uncomment** the HTTPS blocks (remove the `#` symbols). 
-
-or made simple by doing `make down_start` and then `make up`
-
+---
