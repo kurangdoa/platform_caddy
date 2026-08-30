@@ -21,3 +21,9 @@ Unlike traditional Nginx + Certbot setups, Caddy handles TLS automatically:
 Previously, Nginx was considered but it was too quirky for the purpose.
 
 ---
+
+## Run
+
+```
+make up
+```
