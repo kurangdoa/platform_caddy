@@ -15,6 +15,7 @@ services:
       - movie-network
       - langfuse-network
       - mlflow-network
+      - litellm-network
 
 volumes:
   caddy_data:
@@ -26,4 +27,6 @@ networks:
   langfuse-network:
     external: true
   mlflow-network:
+    external: true
+  litellm-network:
     external: true

@@ -30,3 +30,10 @@ langfuse.kurangdoa.com {
 mlflow.kurangdoa.com {
     reverse_proxy mlflow-server:5000
 }
+
+# ---------------------------------------------------------
+# APP 4: LITELLM PROXY & UI
+# ---------------------------------------------------------
+litellm.kurangdoa.com {
+    reverse_proxy litellm_server:4000
+}
