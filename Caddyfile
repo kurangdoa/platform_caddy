@@ -35,5 +35,5 @@ mlflow.kurangdoa.com {
 # APP 4: LITELLM PROXY & UI
 # ---------------------------------------------------------
 litellm.kurangdoa.com {
-    reverse_proxy litellm_server:4000
+    reverse_proxy litellm-server:4000
 }
